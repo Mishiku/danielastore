@@ -15,7 +15,7 @@ RUN npm run build
 
 FROM nginx:alpine
 ENV NGINX_PORT=8080 \
-    BACKEND_HOST=backend \
+    BACKEND_HOST=localhost \
     BACKEND_PORT=3000
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/aurum-and-co/browser /usr/share/nginx/html
