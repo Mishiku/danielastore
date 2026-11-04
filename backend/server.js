@@ -114,6 +114,47 @@ async function initializeDatabase() {
   await dbExec(schemaSql);
 }
 
+async function seedDatabaseIfEmpty() {
+  const userCountRow = await dbGet('SELECT COUNT(*) AS count FROM users');
+  const productCountRow = await dbGet('SELECT COUNT(*) AS count FROM products');
+
+  if ((productCountRow?.count || 0) === 0) {
+    const products = [
+      {
+        name: 'Collar de oro',
+        category: 'Collares',
+        price: 540,
+        image: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80',
+        color: '#f8e5b0',
+        badge: 'Nuevo'
+      },
+      {
+        name: 'Anillo clásico',
+        category: 'Anillos',
+        price: 420,
+        image: 'https://images.unsplash.com/photo-1601821765780-754fa98637c1?auto=format&fit=crop&w=900&q=80',
+        color: '#e9d7a7',
+        badge: 'Top'
+      },
+      {
+        name: 'Aretes finos',
+        category: 'Aretes',
+        price: 390,
+        image: 'https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?auto=format&fit=crop&w=900&q=80',
+        color: '#f0d7c5',
+        badge: 'Popular'
+      }
+    ];
+
+    for (const product of products) {
+      await dbRun(
+        'INSERT INTO products (name, category, price, image, color, badge) VALUES (?, ?, ?, ?, ?, ?)',
+        [product.name, product.category, product.price, product.image, product.color, product.badge]
+      );
+    }
+  }
+}
+
 app.use(cors());
 app.use(express.json({ limit: '8mb' }));
 
