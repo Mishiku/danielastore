@@ -14,10 +14,11 @@ COPY . .
 RUN npm run build
 
 FROM nginx:alpine
-ENV NGINX_PORT=80 \
-    BACKEND_HOST=api \
+ENV NGINX_PORT=8080 \
+    BACKEND_HOST=localhost/api \
     BACKEND_PORT=3000
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/aurum-and-co/browser /usr/share/nginx/html
-EXPOSE 80
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
+
