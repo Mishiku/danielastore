@@ -13,11 +13,17 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM nginx:alpine
+FROM node:20-alpine
 ENV NGINX_PORT=8080 \
-    BACKEND_HOST=localhost \
-    BACKEND_PORT=3000
+    BACKEND_HOST=127.0.0.1 \
+    BACKEND_PORT=3000 \
+    PORT=3000
+WORKDIR /app
+RUN apk add --no-cache nginx
+COPY backend/package*.json ./backend/
+RUN cd backend && npm install --omit=dev
+COPY backend/server.js ./backend/server.js
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/aurum-and-co/browser /usr/share/nginx/html
-EXPOSE 8080
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 8080 3000
+CMD ["sh", "-c", "node /app/backend/server.js & nginx -g 'daemon off;'"]
