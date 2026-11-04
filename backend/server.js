@@ -1,15 +1,117 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 const crypto = require('crypto');
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
-const pool = new Pool();
 const tokenSecret = process.env.AUTH_SECRET;
+const dbPath = process.env.SQLITE_DB_PATH || '/data/danielastore.db';
+const schemaPath = process.env.SQLITE_SCHEMA_PATH || '/app/db/schema.sql';
 
 if (!tokenSecret) {
   throw new Error('AUTH_SECRET must be provided through the environment');
+}
+
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (error) => {
+  if (error) {
+    console.error('Unable to open SQLite database', error);
+    throw error;
+  }
+});
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
+  const hash = crypto.scryptSync(password, salt, 64);
+  return `${salt}:${hash.toString('hex')}`;
+}
+
+function dbExec(sql) {
+  return new Promise((resolve, reject) => {
+    db.exec(sql, (error) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+function dbRun(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function onRun(error) {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve({ id: this.lastID, changes: this.changes });
+    });
+  });
+}
+
+function dbGet(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (error, row) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(row);
+      }
+    });
+  });
+}
+
+function dbAll(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (error, rows) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(rows || []);
+      }
+    });
+  });
+}
+
+async function initializeDatabase() {
+  const defaultSchema = `
+    PRAGMA foreign_keys = ON;
+
+    CREATE TABLE IF NOT EXISTS products (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      category TEXT NOT NULL,
+      price REAL NOT NULL CHECK (price >= 0),
+      image TEXT NOT NULL,
+      color TEXT NOT NULL,
+      badge TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL CHECK (role IN ('user', 'admin'))
+    );
+
+    CREATE TABLE IF NOT EXISTS orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      phone TEXT NOT NULL,
+      ordered_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      products TEXT NOT NULL CHECK (json_valid(products))
+    );
+  `;
+
+  const schemaSql = fs.existsSync(schemaPath)
+    ? fs.readFileSync(schemaPath, 'utf8')
+    : defaultSchema;
+
+  await dbExec(schemaSql);
 }
 
 app.use(cors());
@@ -70,7 +172,7 @@ function requireAdmin(req, res, next) {
 
 app.get('/health', async (_req, res) => {
   try {
-    await pool.query('SELECT 1');
+    await dbGet('SELECT 1 AS ok');
     res.json({ status: 'ok' });
   } catch (error) {
     console.error('Database health check failed', error);
@@ -80,8 +182,8 @@ app.get('/health', async (_req, res) => {
 
 app.get('/api/products', async (_req, res) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT id, name, category, price::float AS price, image, color, badge FROM products ORDER BY id'
+    const rows = await dbAll(
+      'SELECT id, name, category, CAST(price AS REAL) AS price, image, color, badge FROM products ORDER BY id'
     );
     res.json(rows);
   } catch (error) {
@@ -96,14 +198,15 @@ app.post('/api/auth/login', async (req, res) => {
   if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
 
   try {
-    const { rows } = await pool.query(
-      'SELECT id, email, password_hash, role FROM users WHERE email = $1',
+    const user = await dbGet(
+      'SELECT id, email, password_hash, role FROM users WHERE email = ?',
       [email]
     );
-    const user = rows[0];
+
     if (!user || !verifyPassword(password, user.password_hash)) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
+
     res.json({
       token: createToken(user),
       user: { id: user.id, email: user.email, role: user.role }
@@ -121,21 +224,26 @@ app.post('/api/products', authenticate, requireAdmin, async (req, res) => {
     return res.status(400).json({
       error: 'name, category, price, image, and color are required'
     });
-
   }
+
   if (typeof image !== 'string' ||
       (image.length > 8 * 1024 * 1024 && image.startsWith('data:image/'))) {
     return res.status(400).json({ error: 'Image data is too large' });
   }
 
   try {
-    const { rows } = await pool.query(
+    const insertResult = await dbRun(
       `INSERT INTO products (name, category, price, image, color, badge)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, name, category, price::float AS price, image, color, badge`,
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [name, category, price, image, color, badge]
     );
-    res.status(201).json(rows[0]);
+
+    const product = await dbGet(
+      'SELECT id, name, category, CAST(price AS REAL) AS price, image, color, badge FROM products WHERE id = ?',
+      [insertResult.id]
+    );
+
+    res.status(201).json(product);
   } catch (error) {
     console.error('Unable to create product', error);
     res.status(500).json({ error: 'Unable to create product' });
@@ -144,28 +252,33 @@ app.post('/api/products', authenticate, requireAdmin, async (req, res) => {
 
 app.post('/api/orders', authenticate, async (req, res) => {
   const phone = typeof req.body.phone === 'string' ? req.body.phone.trim() : '';
-  const productIds = req.body.products;
+  const productIds = Array.isArray(req.body.products) ? req.body.products : [];
+
   if (!phone || !/^[0-9+() .-]{7,20}$/.test(phone) ||
-      !Array.isArray(productIds) || productIds.length === 0 ||
-      productIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+      productIds.length === 0 ||
+      productIds.some((id) => !Number.isInteger(id) || id <= 0) ||
+      new Set(productIds).size !== productIds.length) {
     return res.status(400).json({ error: 'A valid phone number and at least one product are required' });
   }
 
   try {
-    const { rows: products } = await pool.query(
-      'SELECT id, name, price::float AS price FROM products WHERE id = ANY($1::int[])',
-      [productIds]
+    const placeholders = productIds.map(() => '?').join(',');
+    const products = await dbAll(
+      `SELECT id, name, CAST(price AS REAL) AS price FROM products WHERE id IN (${placeholders})`,
+      productIds
     );
+
     if (products.length !== productIds.length) {
       return res.status(400).json({ error: 'One or more selected products are unavailable' });
     }
-    const { rows } = await pool.query(
-      `INSERT INTO orders (user_id, phone, products)
-       VALUES ($1, $2, $3::jsonb)
-       RETURNING id, ordered_at`,
+
+    const result = await dbRun(
+      'INSERT INTO orders (user_id, phone, products) VALUES (?, ?, ?)',
       [req.user.id, phone, JSON.stringify(products)]
     );
-    res.status(201).json(rows[0]);
+
+    const order = await dbGet('SELECT id, ordered_at FROM orders WHERE id = ?', [result.id]);
+    res.status(201).json(order);
   } catch (error) {
     console.error('Unable to create order', error);
     res.status(500).json({ error: 'Unable to create order' });
@@ -174,12 +287,9 @@ app.post('/api/orders', authenticate, async (req, res) => {
 
 app.delete('/api/products/:id', authenticate, requireAdmin, async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      'DELETE FROM products WHERE id = $1 RETURNING id',
-      [req.params.id]
-    );
+    const result = await dbRun('DELETE FROM products WHERE id = ?', [req.params.id]);
 
-    if (rows.length === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
 
@@ -190,6 +300,14 @@ app.delete('/api/products/:id', authenticate, requireAdmin, async (req, res) => 
   }
 });
 
-app.listen(port, () => {
-  console.log(`Product API listening on port ${port}`);
-});
+initializeDatabase()
+  .then(async () => {
+    await seedDatabaseIfEmpty();
+    app.listen(port, () => {
+      console.log(`Product API listening on port ${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Unable to initialize SQLite database', error);
+    process.exit(1);
+  });

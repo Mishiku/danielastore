@@ -1,8 +1,9 @@
 FROM node:20-alpine
 
-WORKDIR /app
-COPY package*.json ./
+WORKDIR /app/backend
+COPY backend/package*.json ./
 RUN npm install --omit=dev
-COPY . .
+COPY backend/server.js ./
+
 EXPOSE 3000
 CMD ["npm", "start"]

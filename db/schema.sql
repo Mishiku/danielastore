@@ -1,24 +1,26 @@
+PRAGMA foreign_keys = ON;
+
 CREATE TABLE IF NOT EXISTS products (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL UNIQUE,
-  category VARCHAR(100) NOT NULL,
-  price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  category TEXT NOT NULL,
+  price REAL NOT NULL CHECK (price >= 0),
   image TEXT NOT NULL,
-  color VARCHAR(20) NOT NULL,
-  badge VARCHAR(100)
+  color TEXT NOT NULL,
+  badge TEXT
 );
 
 CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  email VARCHAR(255) NOT NULL UNIQUE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  role VARCHAR(20) NOT NULL CHECK (role IN ('user', 'admin'))
+  role TEXT NOT NULL CHECK (role IN ('user', 'admin'))
 );
 
 CREATE TABLE IF NOT EXISTS orders (
-  id SERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id),
-  phone VARCHAR(30) NOT NULL,
-  ordered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  products JSONB NOT NULL CHECK (jsonb_typeof(products) = 'array')
+  phone TEXT NOT NULL,
+  ordered_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  products TEXT NOT NULL CHECK (json_valid(products))
 );

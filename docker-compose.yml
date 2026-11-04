@@ -16,45 +16,22 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "3000:3000"
     environment:
       PORT: 3000
-      PGHOST: db
-      PGPORT: 5432
-      PGDATABASE: danielastore
-      PGUSER: postgres
-      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
-    depends_on:
-      db:
-        condition: service_healthy
+      SQLITE_DB_PATH: /data/danielastore.db
+      SQLITE_SCHEMA_PATH: /app/db/schema.sql
     volumes:
-      - ./backend/server.js:/app/server.js:ro
+      - ./db:/app/db:ro
+      - ./db/sqlite-data:/data
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
       interval: 5s
       timeout: 3s
-      retries: 10
-    restart: unless-stopped
-
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: danielastore
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./db/postgres-data:/var/lib/postgresql/data
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d danielastore"]
-      interval: 5s
-      timeout: 5s
       retries: 10
     restart: unless-stopped
 
