@@ -1,6 +1,0 @@
-danielastore.duckdns.org, www.danielastore.duckdns.org {
-    @api path /api/*
-    reverse_proxy @api backend:3000
-
-    reverse_proxy frontend:8080
-}

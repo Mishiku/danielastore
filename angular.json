@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "aurum-and-co": {
+    "danielastore": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -18,7 +18,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/aurum-and-co",
+            "outputPath": "dist/danielastore",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
@@ -42,7 +42,7 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "buildTarget": "nombre-de-tu-proyecto:build",
+            "buildTarget": "danielastore:build",
             "host": "0.0.0.0",
             "port": 4200,
             "allowedHosts": [
@@ -50,9 +50,9 @@
             ]
           },
           "configurations": {
-            "production": {"buildTarget": "aurum-and-co:build:production"},
+            "production": {"buildTarget": "danielastore:build:production"},
             "development": {
-              "buildTarget": "aurum-and-co:build:development",
+              "buildTarget": "danielastore:build:development",
               "proxyConfig": "src/proxy.conf.json"
             }
           },
