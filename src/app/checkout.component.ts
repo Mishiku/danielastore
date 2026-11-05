@@ -5,8 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from './auth.service';
 import { CartService } from './cart.service';
+import { environment } from '../environments/environment';
 
 interface OrderResponse { id: number; }
+
+const apiBaseUrl = `${environment.apiBaseUrl}/api`;
 
 @Component({
   selector: 'app-checkout',
@@ -73,7 +76,7 @@ export class CheckoutComponent {
     this.submitting = true;
     this.error = '';
     const products = this.cart.products.map(({ id }) => id);
-    this.http.post<OrderResponse>('/api/orders', { phone: this.phone.trim(), products }, {
+    this.http.post<OrderResponse>(`${apiBaseUrl}/orders`, { phone: this.phone.trim(), products }, {
       headers: { Authorization: 'Bearer ' + (this.auth.token ?? '') }
     }).subscribe({
       next: () => {
