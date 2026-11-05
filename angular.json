@@ -41,6 +41,14 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "buildTarget": "nombre-de-tu-proyecto:build",
+            "host": "0.0.0.0",
+            "port": 4200,
+            "allowedHosts": [
+              "danielastore.duckdns.org"
+            ]
+          },
           "configurations": {
             "production": {"buildTarget": "aurum-and-co:build:production"},
             "development": {

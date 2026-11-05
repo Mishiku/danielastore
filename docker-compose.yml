@@ -1,7 +1,5 @@
 services:
   frontend:
-    environment:
-      __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS: danielastore.duckdns.org
     build:
       context: .
       dockerfile: Dockerfile
