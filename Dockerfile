@@ -18,7 +18,7 @@ ENV NGINX_PORT=8080 \
     BACKEND_HOST=localhost/api \
     BACKEND_PORT=3000
 COPY nginx.conf /etc/nginx/templates/default.conf.template
-COPY --from=build /app/dist/aurum-and-co/browser /usr/share/nginx/html
+COPY --from=build /app/dist/danielastore/browser /usr/share/nginx/html
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
 
