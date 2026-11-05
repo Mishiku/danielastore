@@ -1,4 +1,4 @@
-danielastore.duckdns.org {
+{$SITE_ADDRESS:danielastore.duckdns.org} {
     encode gzip
 
     handle /api/* {
