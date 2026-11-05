@@ -18,7 +18,19 @@ import { AuthService } from './auth.service';
         <p class="auth-intro">Accede a tu cuenta para guardar tus piezas favoritas.</p>
         <form (ngSubmit)="submit()" #loginForm="ngForm">
           <label>Correo electrónico<input name="email" type="email" [(ngModel)]="email" required autocomplete="email"></label>
-          <label>Contraseña<input name="password" type="password" [(ngModel)]="password" required autocomplete="current-password"></label>
+          <div class="password-group">
+            <label for="password">Contraseña</label>
+            <div class="password-field">
+              <input id="password" name="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" required autocomplete="current-password">
+              <button class="password-toggle" type="button" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="showPassword" (click)="showPassword = !showPassword">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path *ngIf="showPassword" d="m4 4 16 16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
           <p class="form-error" *ngIf="error">{{ error }}</p>
           <button class="primary-button auth-submit" type="submit" [disabled]="loginForm.invalid || loading">{{ loading ? 'Entrando…' : 'Entrar' }}</button>
         </form>
@@ -29,6 +41,7 @@ import { AuthService } from './auth.service';
 export class LoginComponent {
   email = '';
   password = '';
+  showPassword = false;
   error = '';
   loading = false;
 

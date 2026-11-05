@@ -3,11 +3,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-production}
 
     environment:
       NGINX_PORT: 8080
       BACKEND_HOST: backend
       BACKEND_PORT: 3000
+
+    volumes:
+      - ${FRONTEND_SRC:-frontend_src}:/app/src
+      - ${FRONTEND_ANGULAR_JSON:-frontend_config}:/app/angular.json
 
     expose:
       - "8080"
@@ -24,6 +29,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-production}
     ports:
       - "3000:3000"
     environment:
@@ -32,6 +38,7 @@ services:
       SQLITE_DB_PATH: /data/danielastore.db
       SQLITE_SCHEMA_PATH: /app/db/schema.sql
     volumes:
+      - ${BACKEND_SERVER:-backend_dev}:/app/dev/server.js
       - ./db:/app/db:ro
       - ./db/sqlite-data:/data
     healthcheck:
@@ -58,6 +65,8 @@ services:
       - frontend
       - backend
 volumes:
-  frontend_node_modules:
+  frontend_src:
+  frontend_config:
+  backend_dev:
   caddy_data:
   caddy_config:

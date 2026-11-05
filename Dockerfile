@@ -3,8 +3,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-EXPOSE 4200
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--poll", "1000"]
+EXPOSE 8080
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "8080", "--poll", "1000"]
 
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM nginx:alpine
+FROM nginx:alpine AS production
 ENV NGINX_PORT=8080 \
     BACKEND_HOST=localhost/api \
     BACKEND_PORT=3000
