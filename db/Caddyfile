@@ -1,4 +1,4 @@
-daniela.store, www.daniela.store {
+danielastore.duckdns.org, www.danielastore.duckdns.org {
     @api path /api/*
     reverse_proxy @api backend:3000
 
