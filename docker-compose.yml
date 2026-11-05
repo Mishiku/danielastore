@@ -35,5 +35,21 @@ services:
       retries: 10
     restart: unless-stopped
 
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
 volumes:
   frontend_node_modules:
+  caddy_data:
+  caddy_config:
