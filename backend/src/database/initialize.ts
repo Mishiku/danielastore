@@ -1,0 +1,42 @@
+import fs from 'fs';
+import { env } from '../config/env';
+import { dbExec } from './connection';
+import { seedProductsIfEmpty } from '../modules/products/products.seed';
+
+const defaultSchema = `
+  PRAGMA foreign_keys = ON;
+
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    category TEXT NOT NULL,
+    price REAL NOT NULL CHECK (price >= 0),
+    image TEXT NOT NULL,
+    color TEXT NOT NULL,
+    badge TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('user', 'admin'))
+  );
+
+  CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    phone TEXT NOT NULL,
+    ordered_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    products TEXT NOT NULL CHECK (json_valid(products))
+  );
+`;
+
+export async function initializeDatabase(): Promise<void> {
+  const schemaSql = fs.existsSync(env.schemaPath)
+    ? fs.readFileSync(env.schemaPath, 'utf8')
+    : defaultSchema;
+
+  await dbExec(schemaSql);
+  await seedProductsIfEmpty();
+}

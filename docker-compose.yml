@@ -38,7 +38,7 @@ services:
       SQLITE_DB_PATH: /data/danielastore.db
       SQLITE_SCHEMA_PATH: /app/db/schema.sql
     volumes:
-      - ${BACKEND_SERVER:-backend_dev}:/app/dev/server.js
+      - ./backend/src:/app/src
       - ./db:/app/db:ro
       - ./db/sqlite-data:/data
     healthcheck:
