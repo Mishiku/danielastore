@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { CartService } from './cart.service';
-import { CatalogComponent } from './catalog.component';
-import { FooterComponent } from './footer.component';
-import { HeaderComponent } from './header.component';
-import { Product, ProductsService } from './products.service';
+import { CatalogComponent } from '../catalog/catalog.component';
+import { FooterComponent } from '../footer/footer.component';
+import { HeaderComponent } from '../header/header.component';
+import { CartService } from '../services/cart/cart.service';
+import { Product, ProductsService } from '../services/products/products.service';
 
 @Component({
   selector: 'app-home',

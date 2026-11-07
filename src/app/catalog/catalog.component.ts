@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Product } from './products.service';
+import { Product } from '../services/products/products.service';
 
 @Component({
   selector: 'app-catalog',

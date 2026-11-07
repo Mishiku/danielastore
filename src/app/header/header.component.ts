@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from './auth.service';
-import { CartService } from './cart.service';
+import { AuthService } from '../services/auth/auth.service';
+import { CartService } from '../services/cart/cart.service';
 
 @Component({
   selector: 'app-header',

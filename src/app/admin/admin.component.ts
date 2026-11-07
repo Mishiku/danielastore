@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Product, ProductsService } from './products.service';
-import { AuthService } from './auth.service';
+import { Product, ProductsService } from '../services/products/products.service';
+import { AuthService } from '../services/auth/auth.service';
 
 @Component({
   selector: 'app-admin',
