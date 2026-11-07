@@ -30,6 +30,12 @@ export class ProductsService {
     });
   }
 
+  updateProduct(id: number, product: Pick<Product, 'name' | 'category' | 'price'>): Observable<Product> {
+    return this.http.patch<Product>(`${apiBaseUrl}/products/${id}`, product, {
+      headers: { Authorization: 'Bearer ' + (this.auth.token ?? '') }
+    });
+  }
+
   deleteProduct(id: number): Observable<void> {
     return this.http.delete<void>(`${apiBaseUrl}/products/${id}`, {
       headers: { Authorization: 'Bearer ' + (this.auth.token ?? '') }

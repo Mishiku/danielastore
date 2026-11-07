@@ -503,12 +503,15 @@ h2 {
   margin-left: 8px;
 }
 
+.admin-product-item {
+  border-bottom: 1px solid #d7dcd5;
+  padding: 13px 0;
+}
+
 .admin-product {
   align-items: center;
-  border-bottom: 1px solid #d7dcd5;
   display: flex;
   gap: 15px;
-  padding: 13px 0;
 }
 
 .admin-product img {
@@ -517,7 +520,7 @@ h2 {
   width: 58px;
 }
 
-.admin-product div {
+.admin-product-info {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -540,6 +543,57 @@ h2 {
   border: 0;
   color: var(--coral);
   font-size: 11px;
+}
+
+.admin-product-actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.edit-button {
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.admin-product-edit {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 16px 0 2px 73px;
+}
+
+.admin-product-edit label {
+  color: var(--ink);
+  display: grid;
+  font-size: 11px;
+  gap: 7px;
+}
+
+.admin-product-edit input, .admin-product-edit select {
+  background: var(--cream);
+  border: 1px solid #d7dcd5;
+  color: var(--ink);
+  min-width: 0;
+  padding: 10px;
+}
+
+.admin-product-edit .form-error {
+  grid-column: 1 / -1;
+}
+
+.admin-product-edit-actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  grid-column: 1 / -1;
+}
+
+.admin-product-edit-actions .primary-button {
+  border: 0;
+  padding: 10px 12px;
 }
 
 .admin-tabs {
@@ -676,6 +730,10 @@ h2 {
   }
   .admin-products {
     margin-top: 55px;
+  }
+  .admin-product-edit {
+    grid-template-columns: 1fr;
+    margin-left: 0;
   }
   .admin-tabs {
     overflow-x: auto;

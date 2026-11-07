@@ -27,6 +27,17 @@ export async function insertProduct(p: NewProduct) {
   return result.id;
 }
 
+export async function updateProductById(
+  id: string | number,
+  product: Pick<Product, 'name' | 'category' | 'price'>
+) {
+  const result = await dbRun(
+    'UPDATE products SET name = ?, category = ?, price = ? WHERE id = ?',
+    [product.name, product.category, product.price, id]
+  );
+  return result.changes > 0;
+}
+
 export async function deleteProductById(id: string | number) {
   const result = await dbRun('DELETE FROM products WHERE id = ?', [id]);
   return result.changes > 0;

@@ -23,14 +23,6 @@
       <div class="product-image" [style.background-color]="product.color">
         <img [src]="product.image" [alt]="product.name">
         <span class="product-badge" *ngIf="product.badge">{{ product.badge }}</span>
-        <button
-          class="favorite-button"
-          [class.selected]="favoriteNames.has(product.name)"
-          (click)="favoriteToggled.emit(product.name)"
-          [attr.aria-label]="favoriteNames.has(product.name) ? 'Quitar de favoritos' : 'Añadir a favoritos'"
-        >
-          {{ favoriteNames.has(product.name) ? '♥' : '♡' }}
-        </button>
         <button class="quick-add" (click)="productAdded.emit(product)">
           Añadir a la bolsa <span>＋</span>
         </button>

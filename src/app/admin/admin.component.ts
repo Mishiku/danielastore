@@ -25,7 +25,6 @@ import { AuthService } from '../services/auth/auth.service';
           <label>Nombre<input name="name" [(ngModel)]="draft.name" required></label>
           <label>Categoría<select name="category" [(ngModel)]="draft.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></label>
           <label>Precio<input name="price" type="number" min="0" step="0.01" [(ngModel)]="draft.price" required></label>
-          <label>URL de imagen (opcional)<input name="image" type="url" [(ngModel)]="draft.image" placeholder="https://..."></label>
           <div class="image-dropzone" [class.dragging]="isDragging" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
             <input #imageInput class="image-file-input" type="file" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event)">
             <ng-container *ngIf="!imagePreview; else imageSelected">
@@ -38,17 +37,30 @@ import { AuthService } from '../services/auth/auth.service';
               <button type="button" class="remove-image" (click)="clearImage()">Quitar imagen</button>
             </ng-template>
           </div>
-          <label>Color de fondo<input name="color" type="text" [(ngModel)]="draft.color" required></label>
-          <label>Insignia (opcional)<input name="badge" [(ngModel)]="draft.badge"></label>
           <p class="form-error" *ngIf="error">{{ error }}</p>
           <button class="primary-button" type="submit" [disabled]="productForm.invalid || saving">{{ saving ? 'Guardando…' : 'Añadir al catálogo' }}</button>
         </form>
         <div class="admin-products">
           <h2>Catálogo actual <span>{{ products.length }}</span></h2>
-          <div class="admin-product" *ngFor="let product of products">
-            <img [src]="product.image" [alt]="product.name">
-            <div><strong>{{ product.name }}</strong><small>{{ product.category }} · &#36;{{ product.price }}</small></div>
-            <button type="button" class="delete-button" (click)="removeProduct(product)">Eliminar</button>
+          <div class="admin-product-item" *ngFor="let product of products">
+            <div class="admin-product">
+              <img [src]="product.image" [alt]="product.name">
+              <div class="admin-product-info"><strong>{{ product.name }}</strong><small>{{ product.category }} · &#36;{{ product.price }}</small></div>
+              <div class="admin-product-actions">
+                <button type="button" class="edit-button" (click)="startEditing(product)" [disabled]="savingEdit">Editar</button>
+                <button type="button" class="delete-button" (click)="removeProduct(product)" [disabled]="savingEdit">Eliminar</button>
+              </div>
+            </div>
+            <form class="admin-product-edit" *ngIf="editingProductId === product.id" (ngSubmit)="saveProductEdit(product)" #editForm="ngForm">
+              <label>Nombre<input name="name" [(ngModel)]="editDraft.name" required></label>
+              <label>Categoría<select name="category" [(ngModel)]="editDraft.category" required><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></label>
+              <label>Precio<input name="price" type="number" min="0" step="0.01" [(ngModel)]="editDraft.price" required></label>
+              <p class="form-error" *ngIf="editError">{{ editError }}</p>
+              <div class="admin-product-edit-actions">
+                <button class="primary-button" type="submit" [disabled]="editForm.invalid || savingEdit">{{ savingEdit ? 'Guardando…' : 'Guardar cambios' }}</button>
+                <button class="secondary-button" type="button" (click)="cancelEditing()" [disabled]="savingEdit">Cancelar</button>
+              </div>
+            </form>
           </div>
         </div>
       </section>
@@ -71,7 +83,11 @@ export class AdminComponent implements OnInit {
   pieceWeight: number | null = null;
   products: Product[] = [];
   saving = false;
+  savingEdit = false;
   error = '';
+  editError = '';
+  editingProductId: number | null = null;
+  editDraft: Pick<Product, 'name' | 'category' | 'price'> = { name: '', category: 'Collares', price: 0 };
   isDragging = false;
   imagePreview = '';
   draft: Omit<Product, 'id'> = { name: '', category: 'Collares', price: 0, image: '', color: '#f8e5b0', badge: '' };
@@ -123,6 +139,33 @@ export class AdminComponent implements OnInit {
         this.saving = false;
       },
       error: () => { this.error = 'No se pudo añadir la pieza.'; this.saving = false; }
+    });
+  }
+
+  startEditing(product: Product): void {
+    this.editingProductId = product.id;
+    this.editDraft = { name: product.name, category: product.category, price: product.price };
+    this.editError = '';
+  }
+
+  cancelEditing(): void {
+    this.editingProductId = null;
+    this.editError = '';
+  }
+
+  saveProductEdit(product: Product): void {
+    this.savingEdit = true;
+    this.editError = '';
+    this.productsService.updateProduct(product.id, this.editDraft).subscribe({
+      next: (updatedProduct) => {
+        this.products = this.products.map((item) => item.id === updatedProduct.id ? updatedProduct : item);
+        this.cancelEditing();
+        this.savingEdit = false;
+      },
+      error: () => {
+        this.editError = 'No se pudieron guardar los cambios.';
+        this.savingEdit = false;
+      }
     });
   }
 
@@ -187,7 +230,10 @@ export class AdminComponent implements OnInit {
   removeProduct(product: Product): void {
     if (!confirm(`¿Eliminar "${product.name}"?`)) return;
     this.productsService.deleteProduct(product.id).subscribe({
-      next: () => this.products = this.products.filter((item) => item.id !== product.id),
+      next: () => {
+        this.products = this.products.filter((item) => item.id !== product.id);
+        if (this.editingProductId === product.id) this.cancelEditing();
+      },
       error: () => this.error = 'No se pudo eliminar la pieza.'
     });
   }

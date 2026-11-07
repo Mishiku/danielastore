@@ -66,7 +66,6 @@
 
 .product-image img {
   height: 100%;
-  mix-blend-mode: multiply;
   object-fit: cover;
   transition: transform .5s;
   width: 100%;
@@ -86,23 +85,6 @@
   position: absolute;
   text-transform: uppercase;
   top: 12px;
-}
-
-.favorite-button {
-  background: white;
-  border: 0;
-  border-radius: 50%;
-  color: var(--ink);
-  font-size: 20px;
-  height: 34px;
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  width: 34px;
-}
-
-.favorite-button.selected {
-  color: var(--coral);
 }
 
 .quick-add {

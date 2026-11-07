@@ -17,9 +17,6 @@
         placeholder="Buscar piezas"
       >
     </label>
-    <button class="icon-button" aria-label="Ver favoritos">
-      ♡<span *ngIf="favoriteCount">{{ favoriteCount }}</span>
-    </button>
     <a routerLink="/checkout" class="bag-button" aria-label="Bolsa de compras">
       Bolsa <span>{{ cart.count }}</span>
     </a>
