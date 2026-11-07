@@ -1,0 +1,30 @@
+<header class="site-header">
+  <a class="brand" href="#" aria-label="Inicio de Daniela joyería fina">
+    <img class="brand-logo" src="/icons/logo_daniela.png" alt="Daniela joyería fina">
+  </a>
+  <nav class="desktop-nav" aria-label="Navegación principal">
+    <a href="#shop">Ver todo</a>
+    <a href="#shop">Novedades</a>
+    <a href="#story">Nuestra historia</a>
+  </nav>
+  <div class="header-actions">
+    <label class="search-box" aria-label="Buscar joyería">
+      <span>⌕</span>
+      <input
+        type="search"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="searchTermChange.emit($event)"
+        placeholder="Buscar piezas"
+      >
+    </label>
+    <button class="icon-button" aria-label="Ver favoritos">
+      ♡<span *ngIf="favoriteCount">{{ favoriteCount }}</span>
+    </button>
+    <a routerLink="/checkout" class="bag-button" aria-label="Bolsa de compras">
+      Bolsa <span>{{ cart.count }}</span>
+    </a>
+    <a *ngIf="!auth.user" routerLink="/login" class="login-link">Iniciar sesión</a>
+    <a *ngIf="auth.isAdmin" routerLink="/admin" class="login-link">Admin</a>
+    <button *ngIf="auth.user" type="button" class="logout-button" (click)="logout()">Salir</button>
+  </div>
+</header>

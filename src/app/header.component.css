@@ -1,0 +1,110 @@
+.site-header {
+  align-items: center;
+  display: flex;
+  gap: 50px;
+  justify-content: space-between;
+  margin: auto;
+  max-width: 1240px;
+  padding: 24px 28px;
+}
+
+.desktop-nav {
+  display: flex;
+  gap: 34px;
+  margin-left: auto;
+}
+
+.desktop-nav a {
+  color: #54615c;
+  font-size: 13px;
+}
+
+.desktop-nav a:hover {
+  color: var(--coral);
+}
+
+.header-actions {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+}
+
+.search-box {
+  align-items: center;
+  border-bottom: 1px solid #b8c0b9;
+  display: flex;
+  gap: 7px;
+  padding-bottom: 6px;
+}
+
+.search-box span {
+  font-size: 22px;
+  transform: rotate(-20deg);
+}
+
+.search-box input {
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font-size: 12px;
+  outline: 0;
+  width: 110px;
+}
+
+.icon-button, .bag-button {
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font-size: 13px;
+  position: relative;
+}
+
+.icon-button {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.icon-button span {
+  background: var(--coral);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 9px;
+  padding: 2px 5px;
+  position: absolute;
+  right: -8px;
+  top: -7px;
+}
+
+.bag-button {
+  border-left: 1px solid #cfd5cf;
+  padding-left: 17px;
+}
+
+.bag-button span {
+  color: var(--coral);
+  margin-left: 4px;
+}
+
+.login-link, .logout-button {
+  background: none;
+  border: 0;
+  color: var(--coral);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.logout-button {
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .desktop-nav, .search-box {
+    display: none;
+  }
+  .site-header {
+    padding: 20px;
+  }
+  .header-actions {
+    gap: 10px;
+  }
+}

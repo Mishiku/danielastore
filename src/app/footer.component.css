@@ -1,0 +1,26 @@
+footer {
+  align-items: center;
+  background: var(--ink);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 34px max(28px, calc((100% - 1184px)/2));
+}
+
+footer .brand {
+  font-size: 17px;
+}
+
+footer p, footer>span {
+  color: #a9bab1;
+  font-size: 11px;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  footer {
+    align-items: start;
+    flex-direction: column;
+    gap: 15px;
+  }
+}

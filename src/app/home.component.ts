@@ -1,17 +1,16 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { AuthService } from './auth.service';
 import { CartService } from './cart.service';
+import { CatalogComponent } from './catalog.component';
+import { FooterComponent } from './footer.component';
+import { HeaderComponent } from './header.component';
 import { Product, ProductsService } from './products.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [HeaderComponent, CatalogComponent, FooterComponent],
   templateUrl: './home.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
   readonly categories = ['Todas las piezas', 'Collares', 'Anillos', 'Aretes', 'Pulseras'];
@@ -21,10 +20,8 @@ export class HomeComponent implements OnInit {
   products: Product[] = [];
 
   constructor(
-    readonly auth: AuthService,
     readonly cart: CartService,
-    private readonly productsService: ProductsService,
-    private readonly router: Router
+    private readonly productsService: ProductsService
   ) {}
 
   ngOnInit(): void {
@@ -49,6 +46,4 @@ export class HomeComponent implements OnInit {
     if (this.favoriteNames.has(name)) this.favoriteNames.delete(name);
     else this.favoriteNames.add(name);
   }
-  isFavorite(name: string): boolean { return this.favoriteNames.has(name); }
-  logout(): void { this.auth.logout(); this.router.navigateByUrl('/'); }
 }

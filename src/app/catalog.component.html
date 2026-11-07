@@ -1,0 +1,50 @@
+<section class="shop-section" id="shop">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Encuentra tu pieza para siempre</p>
+      <h2>Compra la colección</h2>
+    </div>
+    <p class="section-description">Cada pieza está hecha para combinarla y hacerla tuya.</p>
+  </div>
+  <div class="shop-controls">
+    <div class="category-tabs" role="tablist" aria-label="Categorías de productos">
+      <button
+        *ngFor="let category of categories"
+        [class.active]="selectedCategory === category"
+        (click)="categorySelected.emit(category)"
+      >
+        {{ category }}
+      </button>
+    </div>
+    <span class="result-count">{{ filteredProducts.length }} piezas</span>
+  </div>
+  <div class="product-grid">
+    <article class="product-card" *ngFor="let product of filteredProducts">
+      <div class="product-image" [style.background-color]="product.color">
+        <img [src]="product.image" [alt]="product.name">
+        <span class="product-badge" *ngIf="product.badge">{{ product.badge }}</span>
+        <button
+          class="favorite-button"
+          [class.selected]="favoriteNames.has(product.name)"
+          (click)="favoriteToggled.emit(product.name)"
+          [attr.aria-label]="favoriteNames.has(product.name) ? 'Quitar de favoritos' : 'Añadir a favoritos'"
+        >
+          {{ favoriteNames.has(product.name) ? '♥' : '♡' }}
+        </button>
+        <button class="quick-add" (click)="productAdded.emit(product)">
+          Añadir a la bolsa <span>＋</span>
+        </button>
+      </div>
+      <div class="product-info">
+        <div>
+          <h3>{{ product.name }}</h3>
+          <p>{{ product.category }}</p>
+        </div>
+        <strong>${{ product.price }}</strong>
+      </div>
+    </article>
+  </div>
+  <div class="empty-state" *ngIf="filteredProducts.length === 0">
+    No encontramos piezas. Intenta con otra búsqueda.
+  </div>
+</section>
