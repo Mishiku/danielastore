@@ -76,13 +76,25 @@
 }
 
 .bag-button {
+  align-items: center;
   border-left: 1px solid #cfd5cf;
+  display: inline-flex;
+  gap: 5px;
   padding-left: 17px;
 }
 
 .bag-button span {
   color: var(--coral);
-  margin-left: 4px;
+}
+
+.cart-icon {
+  fill: none;
+  height: 17px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  width: 17px;
 }
 
 .login-link, .logout-button {

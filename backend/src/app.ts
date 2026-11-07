@@ -4,6 +4,7 @@ import { authRouter } from './modules/auth/auth.routes';
 import { healthRouter } from './modules/health/health.routes';
 import { ordersRouter } from './modules/orders/orders.routes';
 import { productsRouter } from './modules/products/products.routes';
+import { settingsRouter } from './modules/settings/settings.routes';
 
 export const app = express();
 
@@ -14,3 +15,4 @@ app.use('/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api/settings', settingsRouter);

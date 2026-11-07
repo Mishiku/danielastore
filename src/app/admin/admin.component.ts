@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Product, ProductsService } from '../services/products/products.service';
 import { AuthService } from '../services/auth/auth.service';
+import { SettingsService } from '../services/settings/settings.service';
+import { PRODUCT_CATEGORIES } from '../product-categories';
 
 @Component({
   selector: 'app-admin',
@@ -12,37 +14,28 @@ import { AuthService } from '../services/auth/auth.service';
   template: `
     <main class="admin-page">
       <div class="admin-heading">
-        <div><p class="eyebrow">Administración</p><h1>{{ activeTab === 'products' ? 'Productos' : 'Calculadora de precios' }}</h1></div>
+        <div><p class="eyebrow">Administración</p><h1>{{ tabTitle }}</h1></div>
         <div class="admin-actions"><span>{{ auth.user?.email }}</span><a routerLink="/" class="text-link">Ver tienda</a><button type="button" class="secondary-button" (click)="logout()">Cerrar sesión</button></div>
       </div>
       <nav class="admin-tabs" aria-label="Secciones de administración">
         <button type="button" [class.active]="activeTab === 'products'" (click)="selectTab('products')">Productos</button>
         <button type="button" [class.active]="activeTab === 'calculator'" (click)="selectTab('calculator')">Calculadora de precios</button>
+        <button type="button" [class.active]="activeTab === 'settings'" (click)="selectTab('settings')">Settings</button>
       </nav>
       <section class="admin-layout" *ngIf="activeTab === 'products'">
-        <form class="admin-form" (ngSubmit)="addProduct()" #productForm="ngForm">
-          <h2>Añadir pieza</h2>
-          <label>Nombre<input name="name" [(ngModel)]="draft.name" required></label>
-          <label>Categoría<select name="category" [(ngModel)]="draft.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></label>
-          <label>Precio<input name="price" type="number" min="0" step="0.01" [(ngModel)]="draft.price" required></label>
-          <div class="image-dropzone" [class.dragging]="isDragging" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
-            <input #imageInput class="image-file-input" type="file" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event)">
-            <ng-container *ngIf="!imagePreview; else imageSelected">
-              <strong>Arrastra una imagen aquí</strong>
-              <span>o <button type="button" class="text-link" (click)="imageInput.click()">elige un archivo</button></span>
-              <small>PNG, JPG o WEBP · hasta 5 MB</small>
-            </ng-container>
-            <ng-template #imageSelected>
-              <img class="image-preview" [src]="imagePreview" alt="Vista previa de la imagen del producto">
-              <button type="button" class="remove-image" (click)="clearImage()">Quitar imagen</button>
-            </ng-template>
+        <div class="admin-products">
+          <button type="button" class="primary-button admin-add-button" (click)="openAddProductDialog(addProductDialog)">Añadir Pieza</button>
+          <div class="admin-products-header">
+            <h2>Catálogo actual <span>{{ filteredProducts.length }}</span></h2>
+            <label class="admin-category-filter">Filtrar por categoría
+              <select name="productCategoryFilter" [(ngModel)]="selectedCategory">
+                <option value="">Todas las categorías</option>
+                <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+              </select>
+            </label>
           </div>
           <p class="form-error" *ngIf="error">{{ error }}</p>
-          <button class="primary-button" type="submit" [disabled]="productForm.invalid || saving">{{ saving ? 'Guardando…' : 'Añadir al catálogo' }}</button>
-        </form>
-        <div class="admin-products">
-          <h2>Catálogo actual <span>{{ products.length }}</span></h2>
-          <div class="admin-product-item" *ngFor="let product of products">
+          <div class="admin-product-item" *ngFor="let product of filteredProducts">
             <div class="admin-product">
               <img [src]="product.image" [alt]="product.name">
               <div class="admin-product-info"><strong>{{ product.name }}</strong><small>{{ product.category }} · &#36;{{ product.price }}</small></div>
@@ -63,6 +56,31 @@ import { AuthService } from '../services/auth/auth.service';
             </form>
           </div>
         </div>
+        <dialog #addProductDialog class="admin-add-dialog" aria-labelledby="add-product-title" (close)="onAddProductDialogClosed()">
+          <div class="admin-add-dialog-header">
+            <h2 id="add-product-title">Añadir pieza</h2>
+            <button type="button" class="secondary-button" (click)="addProductDialog.close()" [disabled]="saving">Cerrar</button>
+          </div>
+          <form class="admin-form" (ngSubmit)="addProduct(addProductDialog)" #productForm="ngForm">
+            <label>Nombre<input name="name" [(ngModel)]="draft.name" required></label>
+            <label>Categoría<select name="category" [(ngModel)]="draft.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></label>
+            <label>Precio<input name="price" type="number" min="0" step="0.01" [(ngModel)]="draft.price" required></label>
+            <div class="image-dropzone" [class.dragging]="isDragging" (click)="imageInput.click()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+              <input #imageInput class="image-file-input" type="file" accept="image/png,image/jpeg,image/webp" (click)="$event.stopPropagation()" (change)="onFileSelected($event)">
+              <ng-container *ngIf="!imagePreview; else imageSelected">
+                <strong>Arrastra una imagen aquí</strong>
+                <span>o <button type="button" class="text-link" (click)="$event.stopPropagation(); imageInput.click()">elige un archivo</button></span>
+                <small>PNG, JPG o WEBP · hasta 5 MB</small>
+              </ng-container>
+              <ng-template #imageSelected>
+                <img class="image-preview" [src]="imagePreview" alt="Vista previa de la imagen del producto">
+                <button type="button" class="remove-image" (click)="$event.stopPropagation(); clearImage()">Quitar imagen</button>
+              </ng-template>
+            </div>
+            <p class="form-error" *ngIf="addError">{{ addError }}</p>
+            <button class="primary-button" type="submit" [disabled]="productForm.invalid || saving">{{ saving ? 'Guardando…' : 'Añadir al catálogo' }}</button>
+          </form>
+        </dialog>
       </section>
       <section class="admin-layout calculator-layout" *ngIf="activeTab === 'calculator'">
         <form class="admin-form calculator-form">
@@ -72,19 +90,37 @@ import { AuthService } from '../services/auth/auth.service';
           <p class="piece-price" *ngIf="piecePrice !== null"><span>Precio pieza</span><strong>{{ piecePrice | number:'1.2-2' }}</strong></p>
         </form>
       </section>
+      <section class="admin-layout calculator-layout" *ngIf="activeTab === 'settings'">
+        <form class="admin-form" (ngSubmit)="saveSettings()" #settingsForm="ngForm">
+          <h2>Settings</h2>
+          <label>Correos para notificación de compras
+            <textarea name="notificationEmails" rows="4" [(ngModel)]="notificationEmails" placeholder="admin@ejemplo.com, otro@ejemplo.com"></textarea>
+          </label>
+          <small>Separa varios correos con comas, punto y coma o saltos de línea.</small>
+          <p class="form-error" *ngIf="settingsError">{{ settingsError }}</p>
+          <p *ngIf="settingsSaved">Configuración guardada.</p>
+          <button class="primary-button" type="submit" [disabled]="savingSettings">{{ savingSettings ? 'Guardando…' : 'Guardar' }}</button>
+        </form>
+      </section>
     </main>
   `
 })
 export class AdminComponent implements OnInit {
   private readonly goldPriceStorageKey = 'daniela-gold-price';
-  readonly categories = ['Collares', 'Anillos', 'Aretes', 'Pulseras'];
-  activeTab: 'products' | 'calculator' = 'products';
+  readonly categories = PRODUCT_CATEGORIES;
+  activeTab: 'products' | 'calculator' | 'settings' = 'products';
+  notificationEmails = '';
+  savingSettings = false;
+  settingsError = '';
+  settingsSaved = false;
   goldPrice: number | null = null;
   pieceWeight: number | null = null;
   products: Product[] = [];
+  selectedCategory = '';
   saving = false;
   savingEdit = false;
   error = '';
+  addError = '';
   editError = '';
   editingProductId: number | null = null;
   editDraft: Pick<Product, 'name' | 'category' | 'price'> = { name: '', category: 'Collares', price: 0 };
@@ -95,6 +131,7 @@ export class AdminComponent implements OnInit {
   constructor(
     readonly auth: AuthService,
     private readonly productsService: ProductsService,
+    private readonly settingsService: SettingsService,
     private readonly router: Router
   ) {}
 
@@ -112,8 +149,45 @@ export class AdminComponent implements OnInit {
     return this.goldPrice * this.pieceWeight;
   }
 
-  selectTab(tab: 'products' | 'calculator'): void {
+  get filteredProducts(): Product[] {
+    if (!this.selectedCategory) return this.products;
+    return this.products.filter((product) => product.category === this.selectedCategory);
+  }
+
+  get tabTitle(): string {
+    return { products: 'Productos', calculator: 'Calculadora de precios', settings: 'Settings' }[this.activeTab];
+  }
+
+  selectTab(tab: 'products' | 'calculator' | 'settings'): void {
     this.activeTab = tab;
+    if (tab === 'settings') this.loadSettings();
+  }
+
+  saveSettings(): void {
+    const emails = this.notificationEmails.split(/[\s,;]+/).filter(Boolean);
+    this.savingSettings = true;
+    this.settingsError = '';
+    this.settingsSaved = false;
+    this.settingsService.updateSettings(emails).subscribe({
+      next: (settings) => {
+        this.notificationEmails = settings.notificationEmails.join('\n');
+        this.settingsSaved = true;
+        this.savingSettings = false;
+      },
+      error: (error: { error?: { error?: string } }) => {
+        this.settingsError = error.error?.error ?? 'No se pudo guardar la configuración.';
+        this.savingSettings = false;
+      }
+    });
+  }
+
+  private loadSettings(): void {
+    this.settingsError = '';
+    this.settingsSaved = false;
+    this.settingsService.getSettings().subscribe({
+      next: (settings) => this.notificationEmails = settings.notificationEmails.join('\n'),
+      error: () => this.settingsError = 'No se pudo cargar la configuración.'
+    });
   }
 
   saveGoldPrice(value: number | null): void {
@@ -124,21 +198,31 @@ export class AdminComponent implements OnInit {
     localStorage.setItem(this.goldPriceStorageKey, String(value));
   }
 
-  addProduct(): void {
+  openAddProductDialog(dialog: HTMLDialogElement): void {
+    this.addError = '';
+    dialog.showModal();
+  }
+
+  onAddProductDialogClosed(): void {
+    this.isDragging = false;
+  }
+
+  addProduct(dialog: HTMLDialogElement): void {
     if (!this.draft.image) {
-      this.error = 'Añade una URL o sube una imagen.';
+      this.addError = 'Añade una URL o sube una imagen.';
       return;
     }
     this.saving = true;
-    this.error = '';
+    this.addError = '';
     this.productsService.createProduct(this.draft).subscribe({
       next: (product) => {
         this.products = [...this.products, product];
         this.draft = { name: '', category: 'Collares', price: 0, image: '', color: '#f8e5b0', badge: '' };
         this.imagePreview = '';
+        dialog.close();
         this.saving = false;
       },
-      error: () => { this.error = 'No se pudo añadir la pieza.'; this.saving = false; }
+      error: () => { this.addError = 'No se pudo añadir la pieza.'; this.saving = false; }
     });
   }
 
@@ -196,15 +280,16 @@ export class AdminComponent implements OnInit {
   clearImage(): void {
     this.draft.image = '';
     this.imagePreview = '';
+    this.addError = '';
   }
 
   private processImage(file: File): void {
     if (!file.type.match(/^image\/(png|jpeg|webp)$/)) {
-      this.error = 'Elige una imagen PNG, JPG o WEBP.';
+      this.addError = 'Elige una imagen PNG, JPG o WEBP.';
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      this.error = 'La imagen debe pesar menos de 5 MB.';
+      this.addError = 'La imagen debe pesar menos de 5 MB.';
       return;
     }
 
@@ -220,7 +305,7 @@ export class AdminComponent implements OnInit {
         const compressedImage = canvas.toDataURL('image/jpeg', 0.82);
         this.draft.image = compressedImage;
         this.imagePreview = compressedImage;
-        this.error = '';
+        this.addError = '';
       };
       image.src = String(reader.result);
     };

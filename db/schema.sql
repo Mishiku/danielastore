@@ -24,3 +24,8 @@ CREATE TABLE IF NOT EXISTS orders (
   ordered_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   products TEXT NOT NULL CHECK (json_valid(products))
 );
+
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);

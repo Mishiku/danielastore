@@ -4,21 +4,16 @@
   </a>
   <nav class="desktop-nav" aria-label="Navegación principal">
     <a href="#shop">Ver todo</a>
-    <a href="#shop">Novedades</a>
     <a href="#story">Nuestra historia</a>
   </nav>
   <div class="header-actions">
-    <label class="search-box" aria-label="Buscar joyería">
-      <span>⌕</span>
-      <input
-        type="search"
-        [(ngModel)]="searchTerm"
-        (ngModelChange)="searchTermChange.emit($event)"
-        placeholder="Buscar piezas"
-      >
-    </label>
     <a routerLink="/checkout" class="bag-button" aria-label="Bolsa de compras">
-      Bolsa <span>{{ cart.count }}</span>
+      Carrito <span>{{ cart.count }}</span>
+      <svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 1.9-1.4L22 9H6" />
+        <circle cx="10" cy="20" r="1" />
+        <circle cx="18" cy="20" r="1" />
+      </svg>
     </a>
     <a *ngIf="!auth.user" routerLink="/login" class="login-link">Iniciar sesión</a>
     <a *ngIf="auth.isAdmin" routerLink="/admin" class="login-link">Admin</a>

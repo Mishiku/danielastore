@@ -1,5 +1,7 @@
 import type { Request, Response } from 'express';
 import { findProductSummariesByIds } from '../products/products.repository';
+import { sendOrderNotification } from '../mail/mail.service';
+import { getNotificationEmails } from '../settings/settings.repository';
 import { findOrderById, insertOrder } from './orders.repository';
 
 const PHONE_PATTERN = /^[0-9+() .-]{7,20}$/;
@@ -23,7 +25,19 @@ export async function createOrder(req: Request, res: Response) {
     }
 
     const orderId = await insertOrder(req.user!.id, phone, products);
-    res.status(201).json(await findOrderById(orderId));
+    const order = await findOrderById(orderId);
+
+    getNotificationEmails()
+      .then((recipients) => sendOrderNotification(recipients, {
+        orderId,
+        orderedAt: order?.ordered_at ?? new Date().toISOString(),
+        customerEmail: req.user!.email,
+        phone,
+        products
+      }))
+      .catch((error) => console.error('Unable to send order notification email', error));
+
+    res.status(201).json(order);
   } catch (error) {
     console.error('Unable to create order', error);
     res.status(500).json({ error: 'Unable to create order' });

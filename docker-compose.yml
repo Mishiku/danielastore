@@ -37,6 +37,12 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
       SQLITE_DB_PATH: /data/danielastore.db
       SQLITE_SCHEMA_PATH: /app/db/schema.sql
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     volumes:
       - ./backend/src:/app/src
       - ./db:/app/db:ro

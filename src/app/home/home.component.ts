@@ -4,6 +4,7 @@ import { FooterComponent } from '../footer/footer.component';
 import { HeaderComponent } from '../header/header.component';
 import { CartService } from '../services/cart/cart.service';
 import { Product, ProductsService } from '../services/products/products.service';
+import { HOME_CATEGORIES } from '../product-categories';
 
 @Component({
   selector: 'app-home',
@@ -13,7 +14,7 @@ import { Product, ProductsService } from '../services/products/products.service'
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
-  readonly categories = ['Todas las piezas', 'Collares', 'Anillos', 'Aretes', 'Pulseras'];
+  readonly categories = HOME_CATEGORIES;
   selectedCategory = 'Todas las piezas';
   searchTerm = '';
   favoriteNames = new Set<string>();
